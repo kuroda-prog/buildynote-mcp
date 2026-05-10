@@ -6,8 +6,6 @@ info:
 servers:
   - url: https://buildynote-mcp-production.up.railway.app
     description: 本番環境
-  - url: http://localhost:3000
-    description: ローカル開発
 
 security:
   - ApiToken: []
@@ -48,6 +46,7 @@ components:
 paths:
   /health:
     get:
+      operationId: healthCheck
       summary: ヘルスチェック
       security: []
       responses:
@@ -64,6 +63,7 @@ paths:
 
   /works:
     get:
+      operationId: listWorks
       summary: 仕事一覧取得
       parameters:
         - name: name
@@ -86,6 +86,7 @@ paths:
         '401':
           description: 認証エラー
     post:
+      operationId: createWork
       summary: 仕事作成
       requestBody:
         required: true
@@ -113,6 +114,7 @@ paths:
 
   /works/{id}:
     get:
+      operationId: getWork
       summary: 仕事詳細取得
       parameters:
         - name: id
@@ -126,6 +128,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     put:
+      operationId: editWork
       summary: 仕事編集
       parameters:
         - name: id
@@ -148,6 +151,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     delete:
+      operationId: deleteWork
       summary: 仕事削除
       parameters:
         - name: id
@@ -163,6 +167,7 @@ paths:
 
   /works/{work_id}/gantt:
     get:
+      operationId: listGantts
       summary: 工程一覧取得
       parameters:
         - name: work_id
@@ -176,6 +181,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     post:
+      operationId: createGantt
       summary: 工程作成
       parameters:
         - name: work_id
@@ -206,6 +212,7 @@ paths:
 
   /works/{work_id}/gantt/{id}:
     get:
+      operationId: getGantt
       summary: 工程詳細取得
       parameters:
         - name: work_id
@@ -223,6 +230,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     put:
+      operationId: editGantt
       summary: 工程編集
       parameters:
         - name: work_id
@@ -251,6 +259,7 @@ paths:
 
   /schedules:
     get:
+      operationId: listSchedules
       summary: 個人予定一覧取得
       parameters:
         - name: start_date
@@ -269,6 +278,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     post:
+      operationId: createSchedule
       summary: 個人予定作成
       requestBody:
         required: true
@@ -294,6 +304,7 @@ paths:
 
   /schedules/{id}:
     get:
+      operationId: getSchedule
       summary: 個人予定詳細取得
       parameters:
         - name: id
@@ -307,6 +318,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     put:
+      operationId: editSchedule
       summary: 個人予定編集
       parameters:
         - name: id
@@ -329,6 +341,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SuccessResponse' }
     delete:
+      operationId: deleteSchedule
       summary: 個人予定削除
       parameters:
         - name: id
@@ -344,6 +357,7 @@ paths:
 
   /masters/staff:
     get:
+      operationId: listStaff
       summary: 社員一覧
       responses:
         '200':
@@ -354,6 +368,7 @@ paths:
 
   /masters/construction-types:
     get:
+      operationId: listConstructionTypes
       summary: 物件区分一覧
       responses:
         '200':
@@ -364,6 +379,7 @@ paths:
 
   /masters/industry-types:
     get:
+      operationId: listIndustryTypes
       summary: 業種区分一覧
       responses:
         '200':
