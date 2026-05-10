@@ -168,12 +168,20 @@ paths:
   /works/{work_id}/gantt:
     get:
       operationId: listGantts
-      summary: 工程一覧取得
+      summary: 工程一覧取得（日付未指定は今日のみ）
       parameters:
         - name: work_id
           in: path
           required: true
           schema: { type: string }
+        - name: start_date
+          in: query
+          schema: { type: string }
+          description: 取得開始日時（YYYY-MM-DDTHH:mm:ss）。省略時は今日のみ
+        - name: end_date
+          in: query
+          schema: { type: string }
+          description: 取得終了日時（YYYY-MM-DDTHH:mm:ss）
       responses:
         '200':
           description: 工程一覧
@@ -194,10 +202,10 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, day_start, day_end]
+              required: [name, category, day_start, day_end]
               properties:
                 name: { type: string }
-                category: { type: string, description: '1=社内/2=工事/3=納材/4=検査' }
+                category: { type: string, description: '1=社内/2=工事/3=納材/4=検査（必須）' }
                 day_start: { type: string, format: date }
                 day_end: { type: string, format: date }
                 industry_type_id: { type: string }
@@ -247,6 +255,7 @@ paths:
             schema:
               type: object
               properties:
+                status: { type: string, description: '工程状態（1=公開保存, 2=下書き, 3=全体調整中, 4=停止中）。省略時は1' }
                 name: { type: string }
                 day_start: { type: string, format: date }
                 day_end: { type: string, format: date }

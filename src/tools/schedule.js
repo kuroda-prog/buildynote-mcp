@@ -9,6 +9,18 @@ function toIsoEndDatetime(s) {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T23:59:59' : s;
 }
 
+// user_list: [{user_id: 277}, ...] → {'user_list[0][user_id]': 277, ...}
+// API spec: user_list はPHPスタイルのネスト配列形式で送る
+function flattenUserList(users) {
+  if (!users || !Array.isArray(users)) return {};
+  const result = {};
+  users.forEach((u, i) => {
+    const uid = typeof u === 'object' ? u.user_id : u;
+    result[`user_list[${i}][user_id]`] = uid;
+  });
+  return result;
+}
+
 async function listSchedules(client, params = {}) {
   const p = {};
   if (params.user_id) p.user_id = params.user_id;
@@ -23,11 +35,14 @@ async function getSchedule(client, { schedule_id }) {
 }
 
 async function createSchedule(client, params) {
-  return client.call('schedule_new', params);
+  const { user_list, ...rest } = params;
+  return client.call('schedule_new', { ...rest, ...flattenUserList(user_list) });
 }
 
-async function editSchedule(client, { schedule_id, ...rest }) {
-  return client.call('schedule_edit', { schedule_id, ...rest });
+async function editSchedule(client, { schedule_id, user_list, ...rest }) {
+  // is_regularを省略するとG004-005-032エラーになるためデフォルト0を設定
+  if (rest.is_regular === undefined) rest.is_regular = 0;
+  return client.call('schedule_edit', { schedule_id, ...rest, ...flattenUserList(user_list) });
 }
 
 async function deleteSchedule(client, { schedule_id }) {

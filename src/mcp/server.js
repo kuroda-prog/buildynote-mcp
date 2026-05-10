@@ -73,12 +73,14 @@ const TOOLS = [
   },
   {
     name: 'gantt_list',
-    description: '指定した仕事の工程一覧を取得する。',
+    description: '指定した仕事の工程一覧を取得する。日付未指定だと今日の工程のみ返るため、全工程を取得する場合はstart_date/end_dateを広めに指定すること。',
     inputSchema: {
       type: 'object',
       required: ['work_id'],
       properties: {
         work_id: { type: 'string', description: '仕事ID（必須）' },
+        start_date: { type: 'string', description: '取得開始日時（YYYY-MM-DDTHH:mm:ss）。省略時は今日のみ' },
+        end_date: { type: 'string', description: '取得終了日時（YYYY-MM-DDTHH:mm:ss）' },
       },
     },
   },
@@ -87,7 +89,7 @@ const TOOLS = [
     description: '仕事に工程を新規作成する。category: 1=社内, 2=工事, 3=納材, 4=検査',
     inputSchema: {
       type: 'object',
-      required: ['work_id', 'name', 'day_start', 'day_end'],
+      required: ['work_id', 'category', 'name', 'day_start', 'day_end'],
       properties: {
         work_id: { type: 'string', description: '仕事ID' },
         category: { type: 'string', description: '工程種別（1=社内/2=工事/3=納材/4=検査）', enum: ['1', '2', '3', '4'] },
@@ -102,12 +104,14 @@ const TOOLS = [
   },
   {
     name: 'gantt_edit',
-    description: '工程を編集する。',
+    description: '工程を編集する。gantt_idとwork_idは必須。statusは1=公開保存/2=下書き/3=全体調整中/4=停止中（省略時は1）。',
     inputSchema: {
       type: 'object',
-      required: ['gantt_id'],
+      required: ['gantt_id', 'work_id'],
       properties: {
         gantt_id: { type: 'string', description: '工程ID' },
+        work_id: { type: 'string', description: '仕事ID（必須）' },
+        status: { type: 'string', description: '工程状態（1=公開保存, 2=下書き, 3=全体調整中, 4=停止中）。省略時は1', enum: ['1', '2', '3', '4'] },
         name: { type: 'string', description: '工程名' },
         day_start: { type: 'string', description: '開始日（YYYY-MM-DD）' },
         day_end: { type: 'string', description: '終了日（YYYY-MM-DD）' },
@@ -130,32 +134,37 @@ const TOOLS = [
   },
   {
     name: 'schedule_new',
-    description: '個人予定を新規作成する。',
+    description: '個人予定を新規作成する。日付はYYYY-MM-DD、時刻はHH:mmで別フィールドに指定する。user_listは参加者ユーザーIDの配列（自分のIDも必ず含める）。後で削除したい場合はAPIユーザー(id=8497)もuser_listに追加すること。',
     inputSchema: {
       type: 'object',
-      required: ['name', 'start_date', 'end_date'],
+      required: ['name', 'start_date', 'end_date', 'user_list'],
       properties: {
         name: { type: 'string', description: '予定名' },
-        start_date: { type: 'string', description: '開始日時（YYYY-MM-DD または YYYY-MM-DD HH:mm）' },
-        end_date: { type: 'string', description: '終了日時（YYYY-MM-DD または YYYY-MM-DD HH:mm）' },
-        user_list: { type: 'array', items: { type: 'string' }, description: '参加者のユーザーIDリスト' },
+        start_date: { type: 'string', description: '開始日（YYYY-MM-DD）' },
+        start_time: { type: 'string', description: '開始時刻（HH:mm）。省略可' },
+        end_date: { type: 'string', description: '終了日（YYYY-MM-DD）' },
+        end_time: { type: 'string', description: '終了時刻（HH:mm）。省略可' },
+        user_list: { type: 'array', items: { type: 'object', properties: { user_id: { type: 'string' } } }, description: '参加者リスト（例: [{user_id: "277"}, {user_id: "8497"}]）。APIユーザー(8497)を含めると削除可能' },
         work_id: { type: 'string', description: '関連する仕事ID' },
-        is_private: { type: 'string', description: '非公開フラグ（0=公開, 1=非公開）' },
         label_id: { type: 'string', description: 'ラベルID' },
       },
     },
   },
   {
     name: 'schedule_edit',
-    description: '個人予定を編集する。',
+    description: '個人予定を編集する。日付はYYYY-MM-DD、時刻はHH:mmで別フィールドに指定する。is_regularは省略可（デフォルト0）。',
     inputSchema: {
       type: 'object',
-      required: ['schedule_id'],
+      required: ['schedule_id', 'name', 'start_date', 'end_date', 'user_list'],
       properties: {
         schedule_id: { type: 'string', description: '予定ID' },
         name: { type: 'string', description: '予定名' },
-        start_date: { type: 'string', description: '開始日時' },
-        end_date: { type: 'string', description: '終了日時' },
+        start_date: { type: 'string', description: '開始日（YYYY-MM-DD）' },
+        start_time: { type: 'string', description: '開始時刻（HH:mm）。省略可' },
+        end_date: { type: 'string', description: '終了日（YYYY-MM-DD）' },
+        end_time: { type: 'string', description: '終了時刻（HH:mm）。省略可' },
+        user_list: { type: 'array', items: { type: 'object', properties: { user_id: { type: 'string' } } }, description: '参加者リスト（例: [{user_id: "277"}]）' },
+        work_id: { type: 'string', description: '関連する仕事ID' },
       },
     },
   },
