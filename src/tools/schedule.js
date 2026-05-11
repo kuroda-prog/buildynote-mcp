@@ -1,16 +1,22 @@
+// YYYY-MM-DD → YYYY-MM-DDT00:00:00（schedule_list の start_date 用）
 function toIsoDatetime(s) {
   if (!s) return null;
-  // YYYY-MM-DD → YYYY-MM-DDT00:00:00 に変換（時刻なしの場合）
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00' : s;
 }
 
+// YYYY-MM-DD → YYYY-MM-DDT23:59:59（schedule_list の end_date 用）
 function toIsoEndDatetime(s) {
   if (!s) return null;
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T23:59:59' : s;
 }
 
+// date + time → "YYYY-MM-DD HH:mm"（schedule_new/edit の start_date / end_date 用）
+function combineDateTime(date, time) {
+  if (!date) return undefined;
+  return time ? `${date} ${time}` : date;
+}
+
 // user_list: [{user_id: 277}, ...] → {'user_list[0][user_id]': 277, ...}
-// API spec: user_list はPHPスタイルのネスト配列形式で送る
 function flattenUserList(users) {
   if (!users || !Array.isArray(users)) return {};
   const result = {};
@@ -35,14 +41,24 @@ async function getSchedule(client, { schedule_id }) {
 }
 
 async function createSchedule(client, params) {
-  const { user_list, ...rest } = params;
-  return client.call('schedule_new', { ...rest, ...flattenUserList(user_list) });
+  const { user_list, start_date, start_time, end_date, end_time, ...rest } = params;
+  return client.call('schedule_new', {
+    ...rest,
+    start_date: combineDateTime(start_date, start_time),
+    end_date: combineDateTime(end_date, end_time),
+    ...flattenUserList(user_list),
+  });
 }
 
-async function editSchedule(client, { schedule_id, user_list, ...rest }) {
-  // is_regularを省略するとG004-005-032エラーになるためデフォルト0を設定
+async function editSchedule(client, { schedule_id, user_list, start_date, start_time, end_date, end_time, ...rest }) {
   if (rest.is_regular === undefined) rest.is_regular = 0;
-  return client.call('schedule_edit', { schedule_id, ...rest, ...flattenUserList(user_list) });
+  return client.call('schedule_edit', {
+    schedule_id,
+    ...rest,
+    start_date: combineDateTime(start_date, start_time),
+    end_date: combineDateTime(end_date, end_time),
+    ...flattenUserList(user_list),
+  });
 }
 
 async function deleteSchedule(client, { schedule_id }) {

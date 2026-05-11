@@ -1,9 +1,16 @@
 const CATEGORY_MAP = { '社内': '1', '工事': '2', '納材': '3', '検査': '4' };
 
+// YYYY-MM-DD → YYYY-MM-DDT00:00:00（gantt_list は T付き形式が必須）
+function toGanttDatetime(s, endOfDay) {
+  if (!s) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s + (endOfDay ? 'T23:59:59' : 'T00:00:00');
+  return s;
+}
+
 async function listGantts(client, params = {}) {
   const p = { work_id: params.work_id };
-  if (params.start_date) p.start_date = params.start_date;
-  if (params.end_date) p.end_date = params.end_date;
+  if (params.start_date) p.start_date = toGanttDatetime(params.start_date, false);
+  if (params.end_date) p.end_date = toGanttDatetime(params.end_date, true);
   return client.call('gantt_list', p);
 }
 
