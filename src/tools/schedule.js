@@ -10,12 +10,6 @@ function toIsoEndDatetime(s) {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T23:59:59' : s;
 }
 
-// date + time → "YYYY-MM-DD HH:mm"（schedule_new/edit の start_date / end_date 用）
-function combineDateTime(date, time) {
-  if (!date) return undefined;
-  return time ? `${date} ${time}` : date;
-}
-
 // user_list: [{user_id: 277}, ...] → {'user_list[0][user_id]': 277, ...}
 function flattenUserList(users) {
   if (!users || !Array.isArray(users)) return {};
@@ -41,24 +35,15 @@ async function getSchedule(client, { schedule_id }) {
 }
 
 async function createSchedule(client, params) {
-  const { user_list, start_date, start_time, end_date, end_time, ...rest } = params;
-  return client.call('schedule_new', {
-    ...rest,
-    start_date: combineDateTime(start_date, start_time),
-    end_date: combineDateTime(end_date, end_time),
-    ...flattenUserList(user_list),
-  });
+  // start_date(YYYY-MM-DD) と start_time(HH:mm) はAPIが別パラメータとして受け取る
+  const { user_list, ...rest } = params;
+  return client.call('schedule_new', { ...rest, ...flattenUserList(user_list) });
 }
 
-async function editSchedule(client, { schedule_id, user_list, start_date, start_time, end_date, end_time, ...rest }) {
+async function editSchedule(client, { schedule_id, user_list, ...rest }) {
+  // start_date/start_time/end_date/end_time は rest に含まれてそのまま渡す
   if (rest.is_regular === undefined) rest.is_regular = 0;
-  return client.call('schedule_edit', {
-    schedule_id,
-    ...rest,
-    start_date: combineDateTime(start_date, start_time),
-    end_date: combineDateTime(end_date, end_time),
-    ...flattenUserList(user_list),
-  });
+  return client.call('schedule_edit', { schedule_id, ...rest, ...flattenUserList(user_list) });
 }
 
 async function deleteSchedule(client, { schedule_id }) {
