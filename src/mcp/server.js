@@ -17,13 +17,17 @@ const client = new BuildynoteClient(apiToken);
 const TOOLS = [
   {
     name: 'work_list',
-    description: 'BUILDYNOTEの仕事一覧を取得する。名前・ステータス・顧客IDで絞り込み可能。',
+    description: 'BUILDYNOTEの仕事一覧を取得する。名前・ステータス・顧客ID・物件区分IDで絞り込み可能。sort=descで新しいもの順。',
     inputSchema: {
       type: 'object',
       properties: {
         name: { type: 'string', description: '仕事名（部分一致）' },
         status: { type: 'string', description: 'ステータス（1=見込客, 2=受注, 3=完了）' },
         customer_id: { type: 'string', description: '顧客ID' },
+        construction_type_id: { type: 'string', description: '物件区分ID（例: 311=Buildynoteシステム開発#issue）。master_construction_typesで一覧取得可能' },
+        sort: { type: 'string', description: '並び順。desc または updated_desc を指定すると更新日の新しい順で返す', enum: ['desc', 'updated_desc'] },
+        limit: { type: 'string', description: '取得件数（デフォルト50、最大1000）' },
+        page: { type: 'string', description: 'ページ番号（sort未指定時のみ有効）' },
       },
     },
   },

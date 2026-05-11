@@ -77,6 +77,22 @@ paths:
         - name: customer_id
           in: query
           schema: { type: string }
+        - name: construction_type_id
+          in: query
+          schema: { type: string }
+          description: 物件区分ID（例:311=Buildynoteシステム開発#issue）。master_construction_typesで一覧取得可能
+        - name: sort
+          in: query
+          schema: { type: string, enum: [desc, updated_desc] }
+          description: descまたはupdated_descを指定すると更新日の新しい順で返す
+        - name: limit
+          in: query
+          schema: { type: string }
+          description: 取得件数（デフォルト50、最大1000）
+        - name: page
+          in: query
+          schema: { type: string }
+          description: ページ番号
       responses:
         '200':
           description: 仕事一覧
