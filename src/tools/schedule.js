@@ -35,18 +35,48 @@ async function getSchedule(client, { schedule_id }) {
 }
 
 async function createSchedule(client, params) {
-  // start_date(YYYY-MM-DD) と start_time(HH:mm) はAPIが別パラメータとして受け取る
   const { user_list, ...rest } = params;
-  return client.call('schedule_new', { ...rest, ...flattenUserList(user_list) });
+  const users = Array.isArray(user_list) ? [...user_list] : [];
+  // APIユーザー(8497)が含まれていなければ自動追加（後から削除できるようにするため）
+  if (!users.some(u => String(u.user_id || u) === '8497')) {
+    users.push({ user_id: '8497' });
+  }
+  return client.call('schedule_new', { ...rest, ...flattenUserList(users) });
 }
 
 async function editSchedule(client, { schedule_id, user_list, ...rest }) {
-  // start_date/start_time/end_date/end_time は rest に含まれてそのまま渡す
   if (rest.is_regular === undefined) rest.is_regular = 0;
   return client.call('schedule_edit', { schedule_id, ...rest, ...flattenUserList(user_list) });
 }
 
 async function deleteSchedule(client, { schedule_id }) {
+  // schedule_delete はAPIユーザー(8497)が user_list にいる場合のみ成功する。
+  // 8497 が含まれていない既存予定は、先に schedule_edit で追加してから削除する。
+  const info = await client.call('schedule_info', { schedule_id });
+  if (info.errors) return info;
+
+  const currentUsers = Array.isArray(info.user_list)
+    ? info.user_list.map(u => ({ user_id: String(u.user_id) }))
+    : [];
+
+  if (!currentUsers.some(u => u.user_id === '8497')) {
+    const editUsers = [...currentUsers, { user_id: '8497' }];
+    const startDate = (info.start_date || '').substring(0, 10);
+    const startTime = (info.start_date || '').substring(11, 16) || undefined;
+    const endDate = (info.end_date || '').substring(0, 10);
+    const endTime = (info.end_date || '').substring(11, 16) || undefined;
+    await client.call('schedule_edit', {
+      schedule_id,
+      name: info.name,
+      start_date: startDate,
+      ...(startTime ? { start_time: startTime } : {}),
+      end_date: endDate,
+      ...(endTime ? { end_time: endTime } : {}),
+      is_regular: 0,
+      ...flattenUserList(editUsers),
+    });
+  }
+
   return client.call('schedule_delete', { schedule_id });
 }
 
