@@ -21,13 +21,15 @@ async function listWorks(client, params = {}) {
     p['fields[4]'] = 'status';
   }
 
-  // sort=desc のとき: limit=1000 で全取得しクライアント側で updated 降順ソート
+  // sort=desc のとき: 全取得してクライアント側で updated 降順ソート後、指定件数だけ返す
   if (params.sort === 'desc' || params.sort === 'updated_desc') {
+    const returnLimit = parseInt(params.limit, 10) || 20;
     p.limit = 1000;
     delete p.page;
     const result = await client.call('work_list', p);
     if (result.list) {
       result.list.sort((a, b) => (b.updated || '').localeCompare(a.updated || ''));
+      result.list = result.list.slice(0, returnLimit);
     }
     return result;
   }
