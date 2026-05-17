@@ -39,17 +39,6 @@ function fail(res, status, code, message) {
 // ヘルスチェック
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'buildynote-mcp' }));
 
-// デバッグ: クエリパラメータが正しく届くか確認 (本来は不要、検証後削除予定)
-app.get('/debug/query', (req, res) => {
-  const hexOf = (s) => s ? Buffer.from(s, 'utf8').toString('hex') : null;
-  res.json({
-    rawUrl: req.originalUrl,
-    query: req.query,
-    queryHex: Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, hexOf(String(v))])),
-    nodeVersion: process.version,
-  });
-});
-
 // OpenAPI仕様書
 app.get('/openapi.yaml', (_req, res) => {
   res.sendFile(path.join(__dirname, '../../openapi.yaml'));
